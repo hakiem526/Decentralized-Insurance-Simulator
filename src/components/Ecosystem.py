@@ -1,5 +1,4 @@
 from .Dex import Dex
-from .MarketTaker import MarketTaker
 
 # Parameters to set:
 #   1. AMM parameters

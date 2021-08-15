@@ -34,7 +34,6 @@ class Dex:
         priceImpact = (insrPriceToHavePaid - currInsrPrice) / currInsrPrice
         return priceImpact
         
-
     # This private method determines price impact of sell transaction.
     def __getPriceImpactOfInsrSell(self, inputInsrAmount):
         currInsrPrice = self.insrPrice
@@ -58,8 +57,10 @@ class Dex:
         return outgoingEthAfterFee
 
     # This function processes buy transactions and updates reserves and price accordingly.
+    # Function throws error if price impact > 10%.
     def transactBuyInsr(self, inputEthAmount):
-        assert(self.__getPriceImpactOfInsrBuy(inputEthAmount) < 0.1, "Price impact too high!")
+        priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount)
+        assert priceImpact < 0.1, f"Price Impact of %{priceImpact * 100} too high!"
         outgoingInsr = self.getAmountInsrToReceive(inputEthAmount)
         self.__updateEthReserve(inputEthAmount)
         self.__updateInsrReserve(outgoingInsr * -1)
@@ -71,8 +72,10 @@ class Dex:
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly.
+    # Function throws error if price impact > 10%.
     def transactSellInsr(self, inputInsrAmount):
-        assert(self.__getPriceImpactOfInsrSell(inputInsrAmount) < 0.1, "Price impact too high!")
+        priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
+        assert priceImpact < 0.1, f"Price Impact of %{priceImpact * 100} too high!"
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
         self.__updateEthReserve(outgoingEth * -1)
