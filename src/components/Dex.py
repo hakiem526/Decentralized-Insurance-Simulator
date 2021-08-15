@@ -1,6 +1,10 @@
+from .PriceOracle import PriceOracle
+
+# This class maintains the AMM and the associated reserve values and price.
 class Dex:
+
     # Constant price of ETH to simplify ecosystem simulator
-    ethPrice = 3000.0
+    ethPrice = PriceOracle.ethPrice
 
     def __init__(self, ethReserve, insrReserve):
         # evaluate reserve amounts
@@ -23,7 +27,8 @@ class Dex:
         self.ethReserve += float(delta)
 
     def getAmountInsrToReceive(self, inputEthAmount):
-        updatedEthReserve = self.ethReserve + float(inputEthAmount)
+        inputEthAmountAfterFee = float(inputEthAmount) * 0.97 # 3% trx fee in ETH accounted
+        updatedEthReserve = self.ethReserve + float(inputEthAmountAfterFee)
         updatedInsrReserve = self.constantProduct / updatedEthReserve
         outgoingInsr = self.insrReserve - updatedInsrReserve
         return outgoingInsr
@@ -32,9 +37,11 @@ class Dex:
         updatedInsrReserve = self.insrReserve + float(inputInsrAmount)
         updatedEthReserve = self.constantProduct / updatedInsrReserve
         outgoingEth = self.ethReserve - updatedEthReserve
-        return outgoingEth
+        outgoingEthAfterFee = outgoingEth * 0.97 # 3% trx fee in ETH accounted
+        return outgoingEthAfterFee
 
-    def buyInsr(self, inputEthAmount):
+    # This function processes buy transactions and updates reserves and price accordingly.
+    def transactBuyInsr(self, inputEthAmount):
         outgoingInsr = self.getAmountInsrToReceive(inputEthAmount)
         self.__updateEthReserve(inputEthAmount)
         self.__updateInsrReserve(outgoingInsr * -1)
@@ -45,7 +52,8 @@ class Dex:
         transactionReceipt = {'Type' : 'INSRBUY', 'Amount' : outgoingInsr, 'Price' : insrAverageCost}
         return transactionReceipt
 
-    def sellInsr(self, inputInsrAmount):
+    # This function processes sell transactions and updates reserves and price accordingly.
+    def transactSellInsr(self, inputInsrAmount):
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
         self.__updateEthReserve(outgoingEth * -1)
@@ -54,6 +62,7 @@ class Dex:
         # generate receipt
         insrAverageCost = float(outgoingEth) * self.ethPrice / inputInsrAmount
         transactionReceipt = {'Type' : 'INSRSELL', 'Amount' : inputInsrAmount, 'Price' : insrAverageCost}
+        return transactionReceipt
 
     def __str__(self):
         return f'INSR AMM Details \n \t INSR Reserve: {self.insrReserve} \n \t ETH Reserve: {self.ethReserve} \n \t INSR Price: ${self.insrPrice} '

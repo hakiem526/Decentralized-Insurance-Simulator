@@ -1,4 +1,2 @@
-from components.Dex import Dex
+from src.components.Ecosystem import Ecosystem
 
-dex = Dex(10,10)
-print(dex)
