@@ -1,6 +1,6 @@
 from .PriceOracle import PriceOracle
 
-# This class maintains the AMM and the associated reserve values and price.
+# This class maintains the AMM and the associated reserve values and price. Dex impliments a 3% transaction fee.
 class Dex:
 
     # Constant price of ETH to simplify ecosystem simulator
@@ -26,6 +26,23 @@ class Dex:
     def __updateEthReserve(self, delta): 
         self.ethReserve += float(delta)
 
+    # This private method determines price impact of buy transaction.
+    def __getPriceImpactOfInsrBuy(self, inputEthAmount):
+        currInsrPrice = self.insrPrice
+        amountInsrToReceive = self.getAmountInsrToReceive(inputEthAmount)
+        insrPriceToHavePaid = inputEthAmount * self.ethPrice / amountInsrToReceive
+        priceImpact = (insrPriceToHavePaid - currInsrPrice) / currInsrPrice
+        return priceImpact
+        
+
+    # This private method determines price impact of sell transaction.
+    def __getPriceImpactOfInsrSell(self, inputInsrAmount):
+        currInsrPrice = self.insrPrice
+        amountEthToReceive = self.getAmountEthToReceive(inputInsrAmount)
+        pricePerInsrToReceive = amountEthToReceive * self.ethPrice / inputInsrAmount
+        priceImpact = (pricePerInsrToReceive - currInsrPrice) / currInsrPrice
+        return priceImpact
+
     def getAmountInsrToReceive(self, inputEthAmount):
         inputEthAmountAfterFee = float(inputEthAmount) * 0.97 # 3% trx fee in ETH accounted
         updatedEthReserve = self.ethReserve + float(inputEthAmountAfterFee)
@@ -42,6 +59,7 @@ class Dex:
 
     # This function processes buy transactions and updates reserves and price accordingly.
     def transactBuyInsr(self, inputEthAmount):
+        assert(self.__getPriceImpactOfInsrBuy(inputEthAmount) < 0.1, "Price impact too high!")
         outgoingInsr = self.getAmountInsrToReceive(inputEthAmount)
         self.__updateEthReserve(inputEthAmount)
         self.__updateInsrReserve(outgoingInsr * -1)
@@ -54,6 +72,7 @@ class Dex:
 
     # This function processes sell transactions and updates reserves and price accordingly.
     def transactSellInsr(self, inputInsrAmount):
+        assert(self.__getPriceImpactOfInsrSell(inputInsrAmount) < 0.1, "Price impact too high!")
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
         self.__updateEthReserve(outgoingEth * -1)
