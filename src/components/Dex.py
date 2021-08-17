@@ -39,7 +39,7 @@ class Dex:
         currInsrPrice = self.insrPrice
         amountEthToReceive = self.getAmountEthToReceive(inputInsrAmount)
         pricePerInsrToReceive = amountEthToReceive * self.ethPrice / inputInsrAmount
-        priceImpact = (pricePerInsrToReceive - currInsrPrice) / currInsrPrice
+        priceImpact = (currInsrPrice - pricePerInsrToReceive) / currInsrPrice
         return priceImpact
 
     def getAmountInsrToReceive(self, inputEthAmount):
@@ -57,7 +57,7 @@ class Dex:
         return outgoingEthAfterFee
 
     # This function processes buy transactions and updates reserves and price accordingly.
-    # Function throws error if price impact > 10%.
+    # Function throws error if price impact > 10%, when buy amount too high.
     def transactBuyInsr(self, inputEthAmount):
         priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount)
         assert priceImpact < 0.1, f"Price Impact of %{priceImpact * 100} too high!"
@@ -68,13 +68,15 @@ class Dex:
         
         # generate receipt
         insrAverageCost = float(inputEthAmount) * self.ethPrice / outgoingInsr
-        transactionReceipt = {'Type' : 'INSRBUY', 'Amount' : outgoingInsr, 'Price' : insrAverageCost}
+        transactionReceipt = {'Type' : 'INSRBUY', 'Amount' : outgoingInsr, 'Price' : insrAverageCost, 'Total': inputEthAmount * self.ethPrice}
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly.
-    # Function throws error if price impact > 10%.
+    # Function throws error if price impact > 10% when sell amount too high.
+    # Function throws error if price impact < 0 when sell amount too low.
     def transactSellInsr(self, inputInsrAmount):
         priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
+        assert priceImpact > 0, 'Sell more INSR'
         assert priceImpact < 0.1, f"Price Impact of %{priceImpact * 100} too high!"
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
@@ -83,7 +85,7 @@ class Dex:
 
         # generate receipt
         insrAverageCost = float(outgoingEth) * self.ethPrice / inputInsrAmount
-        transactionReceipt = {'Type' : 'INSRSELL', 'Amount' : inputInsrAmount, 'Price' : insrAverageCost}
+        transactionReceipt = {'Type' : 'INSRSELL', 'Amount' : inputInsrAmount, 'Price' : insrAverageCost, 'Total' : outgoingEth * self.ethPrice}
         return transactionReceipt
 
     def __str__(self):
