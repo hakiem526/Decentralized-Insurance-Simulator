@@ -1,7 +1,8 @@
-from .PriceOracle import PriceOracle
-from .utility.PriceImpactHandler import PriceImpactHandler
+from ..utility.PriceOracle import PriceOracle
+from ..utility.PriceImpactHandler import PriceImpactHandler
 
-# This class maintains the AMM and the associated reserve values and price. Dex impliments a 3% transaction fee.
+# This class maintains the AMM and the associated reserve values and price. Dex impliments a 0.3% transaction fee.
+# Buy or sell transactions that will have too high a price impact will not be processed.
 class Dex:
 
     # Constant price of ETH to simplify ecosystem simulator
@@ -27,7 +28,7 @@ class Dex:
     def __updateEthReserve(self, delta): 
         self.ethReserve += float(delta)
 
-    # This private method determines price impact of buy transaction.
+    # This private function determines price impact of buy transaction.
     # Price impact refers to the difference between the current market price and the expected fill price
     def __getPriceImpactOfInsrBuy(self, inputEthAmount):
         currInsrPrice = self.insrPrice
@@ -36,7 +37,7 @@ class Dex:
         priceImpact = (insrPriceToHavePaid - currInsrPrice) / currInsrPrice
         return priceImpact
         
-    # This private method determines price impact of sell transaction.
+    # This private function determines price impact of sell transaction.
     # Price impact refers to the difference between the current market price and the expected fill price
     def __getPriceImpactOfInsrSell(self, inputInsrAmount):
         currInsrPrice = self.insrPrice
@@ -45,6 +46,7 @@ class Dex:
         priceImpact = (currInsrPrice - pricePerInsrToReceive) / currInsrPrice
         return priceImpact
 
+    # This function returns output INSR amount given specified ETH sell amount.
     def getAmountInsrToReceive(self, inputEthAmount):
         inputEthAmountAfterFee = float(inputEthAmount) * 0.997 # 0.3% trx fee in ETH accounted
         updatedEthReserve = self.ethReserve + float(inputEthAmountAfterFee)
@@ -52,6 +54,7 @@ class Dex:
         outgoingInsr = self.insrReserve - updatedInsrReserve
         return outgoingInsr
 
+    # This function returns output ETH amount given specified INSR sell amount.
     def getAmountEthToReceive(self, inputInsrAmount):
         updatedInsrReserve = self.insrReserve + float(inputInsrAmount)
         updatedEthReserve = self.constantProduct / updatedInsrReserve
@@ -83,7 +86,7 @@ class Dex:
         priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
         if (priceImpact < -0.1 or priceImpact > 0.1):
             return PriceImpactHandler(priceImpact)
-            
+
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
         self.__updateEthReserve(outgoingEth * -1)
