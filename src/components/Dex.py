@@ -1,4 +1,5 @@
 from .PriceOracle import PriceOracle
+from .utility.PriceImpactHandler import PriceImpactHandler
 
 # This class maintains the AMM and the associated reserve values and price. Dex impliments a 3% transaction fee.
 class Dex:
@@ -61,9 +62,10 @@ class Dex:
     # This function processes buy transactions and updates reserves and price accordingly.
     # Function throws error if price impact > 10%, when buy amount too high.
     def transactBuyInsr(self, inputEthAmount):
-        priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount)
-        assert priceImpact > -0.1, f'Price impact of %{priceImpact * 100} too high!'
-        assert priceImpact < 0.1, f"Price Impact of %{priceImpact * 100} too high!"
+        priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount) 
+        if (priceImpact < -0.1 or priceImpact > 0.1):
+            return PriceImpactHandler(priceImpact)
+
         outgoingInsr = self.getAmountInsrToReceive(inputEthAmount)
         self.__updateEthReserve(inputEthAmount)
         self.__updateInsrReserve(outgoingInsr * -1)
@@ -79,8 +81,9 @@ class Dex:
     # Function throws error if price impact < 0 when sell amount too low.
     def transactSellInsr(self, inputInsrAmount):
         priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
-        assert priceImpact > -0.1, f'Price impact of %{priceImpact * 100} too high!'
-        assert priceImpact < 0.1, f'Price Impact of %{priceImpact * 100} too high!'
+        if (priceImpact < -0.1 or priceImpact > 0.1):
+            return PriceImpactHandler(priceImpact)
+            
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
         self.__updateEthReserve(outgoingEth * -1)
