@@ -1,7 +1,7 @@
 from ..utility.PriceOracle import PriceOracle
 from ..utility.PriceImpactHandler import PriceImpactHandler
 
-# This class maintains the AMM and the associated reserve values and price. Dex impliments a 0.3% transaction fee.
+# This class maintains the AMM and the associated reserve values and price. Dex does not impliments a transaction fee.
 # Buy or sell transactions that will have too high a price impact will not be processed.
 class Dex:
 
@@ -48,7 +48,7 @@ class Dex:
 
     # This function returns output INSR amount given specified ETH sell amount.
     def getAmountInsrToReceive(self, inputEthAmount):
-        inputEthAmountAfterFee = float(inputEthAmount) * 0.997 # 0.3% trx fee in ETH accounted
+        inputEthAmountAfterFee = float(inputEthAmount)
         updatedEthReserve = self.ethReserve + float(inputEthAmountAfterFee)
         updatedInsrReserve = self.constantProduct / updatedEthReserve
         outgoingInsr = self.insrReserve - updatedInsrReserve
@@ -59,8 +59,14 @@ class Dex:
         updatedInsrReserve = self.insrReserve + float(inputInsrAmount)
         updatedEthReserve = self.constantProduct / updatedInsrReserve
         outgoingEth = self.ethReserve - updatedEthReserve
-        outgoingEthAfterFee = outgoingEth * 0.997 # 0.3% trx fee in ETH accounted
+        outgoingEthAfterFee = outgoingEth
         return outgoingEthAfterFee
+
+    # This function returns cost of buying a specific amount of INSR in ETH
+    def getCostOfInsrBuyInEth(self, expectedOutputInsr):
+        costInEth = self.constantProduct / (self.insrReserve - expectedOutputInsr) - self.ethReserve
+        return costInEth
+
 
     # This function processes buy transactions and updates reserves and price accordingly.
     # Function throws error if price impact > 10%, when buy amount too high.
