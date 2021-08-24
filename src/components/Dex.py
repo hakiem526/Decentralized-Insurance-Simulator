@@ -67,7 +67,6 @@ class Dex:
         costInEth = self.constantProduct / (self.insrReserve - expectedOutputInsr) - self.ethReserve
         return costInEth
 
-
     # This function processes buy transactions and updates reserves and price accordingly.
     # Function throws error if price impact > 10%, when buy amount too high.
     def transactBuyInsr(self, inputEthAmount):

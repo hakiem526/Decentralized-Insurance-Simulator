@@ -5,6 +5,7 @@ from .Dex import Dex
 #       a. Initial INSR reserve
 #       b. Initial ETH reserve
 
+# This class handles interactions between actors
 class Ecosystem:
     def __init__(self, dex, marketTakers):
         self.dex = Dex(dex)
