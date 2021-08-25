@@ -12,22 +12,19 @@ class MarketTaker:
     totalNum = 0
 
     def __init__(self, ethBalance, probabilities):
-        assert probabilities.len() == 3
+        assert probabilities.len() == 3 
 
         self.id = self.totalNum
         self.ethBalance = float(ethBalance)
-        self.insrBalance = 0
-        self.tknBalance = 0
+        self.insrBalance = 0.0
+        self.tknBalance = 0.0
         self.totalNum += 1
         self.probabilities = probabilities
 
     # This function processes INSR buys from input Dex and updates local balances.
     # 
     def buyInsr(self, insrDex: Dex, ethAmount):
-        try:
-            insrDex.transactBuyInsr(ethAmount)
-        except:
-            pass
+        insrDex.transactBuyInsr(ethAmount)
 
     def sellInsr(self, dex: Dex, insrAmount):
         pass

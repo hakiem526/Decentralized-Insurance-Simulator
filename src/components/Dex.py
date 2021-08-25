@@ -1,5 +1,4 @@
 from ..utility.PriceOracle import PriceOracle
-from ..utility.PriceImpactHandler import PriceImpactHandler
 
 # This class maintains the AMM and the associated reserve values and price. Dex does not impliments a transaction fee.
 # Buy or sell transactions that will have too high a price impact will not be processed.
@@ -79,13 +78,14 @@ class Dex:
         costInEth = self.constantProduct / (self.insrReserve - expectedOutputInsr) - self.ethReserve
         return costInEth
 
-    # This function processes buy transactions and updates reserves and price accordingly
-    # Function returns PriceImpactHandler if price impact > 10%, when buy amount too high
-    # Function returns PriceImpactHandler if price impact < -10%, when buy amount too low
+    # This function processes buy transactions and updates reserves and price accordingly. Returns dictionary of transaction details
+    # Function returns dictionary of price impact details if price impact > 10%, when buy amount too high
+    # Function returns dictionary of price impact details if price impact < -10%, when buy amount too low
     def transactBuyInsr(self, inputEthAmount):
         priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount) 
         if (priceImpact < -0.1 or priceImpact > 0.1):
-            return PriceImpactHandler(priceImpact)
+            priceImpactHandler = {'priceImpact' : priceImpact}
+            return priceImpactHandler
 
         outgoingInsr = self.getAmountInsrToReceive(inputEthAmount)
         self.__updateEthReserve(inputEthAmount)
@@ -94,15 +94,16 @@ class Dex:
         
         # generate receipt
         insrAverageCost = float(inputEthAmount) * self.ethPrice / outgoingInsr
-        transactionReceipt = {'Type' : 'INSRBUY', 'Amount' : outgoingInsr, 'Price' : insrAverageCost, 'Total': inputEthAmount * self.ethPrice}
+        transactionReceipt = {'type' : 'INSRBUY', 'amount' : outgoingInsr, 'price' : insrAverageCost, 'total': inputEthAmount * self.ethPrice}
         return transactionReceipt
 
-    # This function processes sell transactions and updates reserves and price accordingly
-    # Function throws PriceImpactHandler if price impact > 10%
+    # This function processes sell transactions and updates reserves and price accordingly. Returns dictionary of transaction details
+    # Function returns dictionary of price impact details if price impact > 10%
     def transactSellInsr(self, inputInsrAmount):
         priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
         if (priceImpact < -0.1 or priceImpact > 0.1):
-            return PriceImpactHandler(priceImpact)
+            priceImpactHandler = {'priceImpact' : priceImpact}
+            return priceImpactHandler
 
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
@@ -111,7 +112,7 @@ class Dex:
 
         # generate receipt
         insrAverageCost = float(outgoingEth) * self.ethPrice / inputInsrAmount
-        transactionReceipt = {'Type' : 'INSRSELL', 'Amount' : inputInsrAmount, 'Price' : insrAverageCost, 'Total' : outgoingEth * self.ethPrice}
+        transactionReceipt = {'type' : 'INSRSELL', 'amount' : inputInsrAmount, 'price' : insrAverageCost, 'total' : outgoingEth * self.ethPrice}
         return transactionReceipt
 
     def __str__(self):
