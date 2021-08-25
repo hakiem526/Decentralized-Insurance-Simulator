@@ -31,6 +31,8 @@ class Dex:
     # This private function determines price impact of buy transaction.
     # Price impact refers to the difference between the current market price and the expected fill price
     def __getPriceImpactOfInsrBuy(self, inputEthAmount):
+        assert inputEthAmount > 0, 'Cannot input 0 ETH'
+
         currInsrPrice = self.insrPrice
         amountInsrToReceive = self.getAmountInsrToReceive(inputEthAmount)
         insrPriceToHavePaid = inputEthAmount * self.ethPrice / amountInsrToReceive
@@ -40,6 +42,8 @@ class Dex:
     # This private function determines price impact of sell transaction.
     # Price impact refers to the difference between the current market price and the expected fill price
     def __getPriceImpactOfInsrSell(self, inputInsrAmount):
+        assert inputInsrAmount > 0, 'Cannot input 0 INSR'
+
         currInsrPrice = self.insrPrice
         amountEthToReceive = self.getAmountEthToReceive(inputInsrAmount)
         pricePerInsrToReceive = amountEthToReceive * self.ethPrice / inputInsrAmount
@@ -48,6 +52,8 @@ class Dex:
 
     # This function returns output INSR amount given specified ETH sell amount.
     def getAmountInsrToReceive(self, inputEthAmount):
+        assert inputEthAmount > 0, 'Cannot input 0 ETH'
+
         inputEthAmountAfterFee = float(inputEthAmount)
         updatedEthReserve = self.ethReserve + float(inputEthAmountAfterFee)
         updatedInsrReserve = self.constantProduct / updatedEthReserve
@@ -56,6 +62,8 @@ class Dex:
 
     # This function returns output ETH amount given specified INSR sell amount.
     def getAmountEthToReceive(self, inputInsrAmount):
+        assert inputInsrAmount > 0, 'Cannot input 0 INSR'
+
         updatedInsrReserve = self.insrReserve + float(inputInsrAmount)
         updatedEthReserve = self.constantProduct / updatedInsrReserve
         outgoingEth = self.ethReserve - updatedEthReserve
@@ -63,12 +71,17 @@ class Dex:
         return outgoingEthAfterFee
 
     # This function returns cost of buying a specific amount of INSR in ETH
+    # Use this function to process buys of specific amount of INSR
     def getCostOfInsrBuyInEth(self, expectedOutputInsr):
+        assert expectedOutputInsr > 0, 'Cannot buy 0 INSR'
+        assert expectedOutputInsr < self.insrReserve, 'Cannot buy all reserves'
+        
         costInEth = self.constantProduct / (self.insrReserve - expectedOutputInsr) - self.ethReserve
         return costInEth
 
-    # This function processes buy transactions and updates reserves and price accordingly.
-    # Function throws error if price impact > 10%, when buy amount too high.
+    # This function processes buy transactions and updates reserves and price accordingly
+    # Function returns PriceImpactHandler if price impact > 10%, when buy amount too high
+    # Function returns PriceImpactHandler if price impact < -10%, when buy amount too low
     def transactBuyInsr(self, inputEthAmount):
         priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount) 
         if (priceImpact < -0.1 or priceImpact > 0.1):
@@ -84,9 +97,8 @@ class Dex:
         transactionReceipt = {'Type' : 'INSRBUY', 'Amount' : outgoingInsr, 'Price' : insrAverageCost, 'Total': inputEthAmount * self.ethPrice}
         return transactionReceipt
 
-    # This function processes sell transactions and updates reserves and price accordingly.
-    # Function throws error if price impact > 10% when sell amount too high.
-    # Function throws error if price impact < 0 when sell amount too low.
+    # This function processes sell transactions and updates reserves and price accordingly
+    # Function throws PriceImpactHandler if price impact > 10%
     def transactSellInsr(self, inputInsrAmount):
         priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
         if (priceImpact < -0.1 or priceImpact > 0.1):
