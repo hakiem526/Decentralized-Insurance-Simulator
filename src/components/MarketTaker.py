@@ -35,15 +35,27 @@ class MarketTaker:
 
     # This function processes INSR buys from input Dex and updates local balances.
     def buyInsr(self, insrDex: Dex, ethAmount):
-        # handle price impact
+        assert ethAmount <= self.ethBalance, 'Input ETH > balance'
+        # handle price impact?
+        
+        incomingInsr = insrDex.getAmountInsrToReceive(ethAmount)
+        insrDex.transactBuyInsr(ethAmount)
 
-        trxReceipt = insrDex.transactBuyInsr(ethAmount)
-        incomingInsr = trxReceipt.get('amount')
+        # update balances
         self.__updateEthBalance(ethAmount * -1.0)
         self.__updateInsrBalance(incomingInsr)
 
-    def sellInsr(self, dex: Dex, insrAmount):
-        pass
+    # This function processes INSR buys from input Dex and updates local balances.
+    def sellInsr(self, insrDex: Dex, insrAmount):
+        assert insrAmount <= self.insrBalance, 'Input INSR > balance'
+        # handle price impact?
+        
+        incomingEth = insrDex.getAmountEthToReceive(insrAmount)
+        insrDex.transactSellInsr(insrAmount)
+
+        # update balances
+        self.__updateInsrBalance(insrAmount * -1.0)
+        self.__updateEthBalance(incomingEth)
 
     def buyTkn(self, tknDex, insrAmount):
         ethToSpend = self.ethBalance * 1
