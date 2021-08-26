@@ -95,6 +95,7 @@ class Dex:
         # generate receipt
         insrAverageCost = float(inputEthAmount) * self.ethPrice / outgoingInsr
         transactionReceipt = {'type' : 'INSRBUY', 'amount' : outgoingInsr, 'price' : insrAverageCost, 'total': inputEthAmount * self.ethPrice}
+        print(transactionReceipt)
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly. Returns dictionary of transaction details
@@ -116,4 +117,5 @@ class Dex:
         return transactionReceipt
 
     def __str__(self):
-        return f'INSR AMM Details \n \t INSR Reserve: {self.insrReserve} \n \t ETH Reserve: {self.ethReserve} \n \t INSR Price: ${self.insrPrice} '
+        return 'INSR AMM \n \t INSR reserve: ' + str(self.insrReserve) + ' \n \t ETH reserve: ' + str(self.ethReserve) +  \
+            '\n \t INSR price: $' + str(self.insrPrice)
