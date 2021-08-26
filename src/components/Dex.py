@@ -1,3 +1,4 @@
+from typing import Dict
 from ..utility.PriceOracle import PriceOracle
 
 # This class maintains the AMM and the associated reserve values and price. Dex does not impliments a transaction fee.
@@ -114,9 +115,10 @@ class Dex:
         # generate receipt
         insrAverageCost = float(outgoingEth) * self.ethPrice / inputInsrAmount
         transactionReceipt = {'type' : 'INSRSELL', 'amount' : inputInsrAmount, 'price' : insrAverageCost, 'total' : outgoingEth * self.ethPrice}
+        self.__printTrxReceiptPretty(transactionReceipt)
         return transactionReceipt
 
-    def __printTrxReceiptPretty(self, receipt):
+    def __printTrxReceiptPretty(self, receipt: Dict):
         output = 'Trx receipt\n\t' + 'Type: ' + str(receipt.get('type')) + '\n\tAmount INSR: ' + str(receipt.get('amount')) + \
             '\n\tAvg price: $' + str(receipt.get('price')) + '\n\tTotal: $' + str(receipt.get('total'))
         print(output)
