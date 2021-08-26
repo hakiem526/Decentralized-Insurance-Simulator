@@ -95,7 +95,7 @@ class Dex:
         # generate receipt
         insrAverageCost = float(inputEthAmount) * self.ethPrice / outgoingInsr
         transactionReceipt = {'type' : 'INSRBUY', 'amount' : outgoingInsr, 'price' : insrAverageCost, 'total': inputEthAmount * self.ethPrice}
-        print(transactionReceipt)
+        self.__printTrxReceiptPretty(transactionReceipt)
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly. Returns dictionary of transaction details
@@ -116,6 +116,11 @@ class Dex:
         transactionReceipt = {'type' : 'INSRSELL', 'amount' : inputInsrAmount, 'price' : insrAverageCost, 'total' : outgoingEth * self.ethPrice}
         return transactionReceipt
 
+    def __printTrxReceiptPretty(self, receipt):
+        output = 'Trx receipt\n\t' + 'Type: ' + str(receipt.get('type')) + '\n\tAmount INSR: ' + str(receipt.get('amount')) + \
+            '\n\tAvg price: $' + str(receipt.get('price')) + '\n\tTotal: $' + str(receipt.get('total'))
+        print(output)
+
     def __str__(self):
-        return 'INSR AMM \n \t INSR reserve: ' + str(self.insrReserve) + ' \n \t ETH reserve: ' + str(self.ethReserve) +  \
-            '\n \t INSR price: $' + str(self.insrPrice)
+        return 'INSR AMM \n\t INSR reserve: ' + str(self.insrReserve) + ' \n\t ETH reserve: ' + str(self.ethReserve) +  \
+            '\n\t INSR price: $' + str(self.insrPrice)
