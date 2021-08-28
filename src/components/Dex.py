@@ -50,7 +50,7 @@ class Dex:
         priceImpact = (currInsrPrice - pricePerInsrToReceive) / currInsrPrice
         return priceImpact
 
-    # This function returns output INSR amount given specified ETH sell amount.
+    # This function returns output INSR amount given specified ETH sell amount
     def getAmountInsrToReceive(self, inputEthAmount):
         assert inputEthAmount > 0, 'Cannot input 0 ETH'
 
@@ -60,7 +60,7 @@ class Dex:
         outgoingInsr = self.insrReserve - updatedInsrReserve
         return outgoingInsr
 
-    # This function returns output ETH amount given specified INSR sell amount.
+    # This function returns output ETH amount given specified INSR sell amount
     def getAmountEthToReceive(self, inputInsrAmount):
         assert inputInsrAmount > 0, 'Cannot input 0 INSR'
 
