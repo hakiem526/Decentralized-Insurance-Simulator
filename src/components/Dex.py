@@ -28,9 +28,9 @@ class Dex:
     def __updateEthReserve(self, delta): 
         self.ethReserve += float(delta)
 
-    # This private function determines price impact of buy transaction.
+    # This function determines price impact of buy transaction. Call this method before transactBuyInsr()
     # Price impact refers to the difference between the current market price and the expected fill price
-    def __getPriceImpactOfInsrBuy(self, inputEthAmount):
+    def getPriceImpactOfInsrBuy(self, inputEthAmount):
         assert inputEthAmount > 0, 'Cannot input 0 ETH'
 
         currInsrPrice = self.insrPrice
@@ -39,9 +39,9 @@ class Dex:
         priceImpact = (insrPriceToHavePaid - currInsrPrice) / currInsrPrice
         return priceImpact
         
-    # This private function determines price impact of sell transaction.
+    # This function determines price impact of sell transaction. Call this method before transactSellInsr()
     # Price impact refers to the difference between the current market price and the expected fill price
-    def __getPriceImpactOfInsrSell(self, inputInsrAmount):
+    def getPriceImpactOfInsrSell(self, inputInsrAmount):
         assert inputInsrAmount > 0, 'Cannot input 0 INSR'
 
         currInsrPrice = self.insrPrice
@@ -80,13 +80,11 @@ class Dex:
         return costInEth
 
     # This function processes buy transactions and updates reserves and price accordingly. Returns dictionary of transaction details
-    # Function returns dictionary of price impact details if price impact > 10%, when buy amount too high
-    # Function returns dictionary of price impact details if price impact < -10%, when buy amount too low
+    # Function throws exception if price impact > 10%, when buy amount too high
+    # Function throws exception if price impact < -10%, when buy amount too low
     def transactBuyInsr(self, inputEthAmount):
-        priceImpact = self.__getPriceImpactOfInsrBuy(inputEthAmount) 
-        if (priceImpact < -0.1 or priceImpact > 0.1):
-            priceImpactHandler = {'priceImpact' : priceImpact}
-            return priceImpactHandler
+        priceImpact = self.getPriceImpactOfInsrBuy(inputEthAmount) 
+        assert priceImpact < 0.1 and priceImpact > -0.1
 
         outgoingInsr = self.getAmountInsrToReceive(inputEthAmount)
         self.__updateEthReserve(inputEthAmount)
@@ -100,12 +98,10 @@ class Dex:
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly. Returns dictionary of transaction details
-    # Function returns dictionary of price impact details if price impact > 10%
+    # Function throws exception details if price impact > 10%
     def transactSellInsr(self, inputInsrAmount):
-        priceImpact = self.__getPriceImpactOfInsrSell(inputInsrAmount)
-        if (priceImpact < -0.1 or priceImpact > 0.1):
-            priceImpactHandler = {'priceImpact' : priceImpact}
-            return priceImpactHandler
+        priceImpact = self.getPriceImpactOfInsrSell(inputInsrAmount)
+        assert priceImpact < 0.1 and priceImpact > -0.1
 
         outgoingEth = self.getAmountEthToReceive(inputInsrAmount)
         self.__updateInsrReserve(inputInsrAmount)
