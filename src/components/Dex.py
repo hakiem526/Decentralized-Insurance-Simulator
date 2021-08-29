@@ -98,7 +98,8 @@ class Dex:
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly. Returns dictionary of transaction details
-    # Function throws exception details if price impact > 10%
+    # Function throws exception if price impact > 10%, when sell amount too high
+    # Function throws exception if price impact < -10%, when sell amount too low
     def transactSellInsr(self, inputInsrAmount):
         priceImpact = self.getPriceImpactOfInsrSell(inputInsrAmount)
         assert priceImpact < 0.1 and priceImpact > -0.1
