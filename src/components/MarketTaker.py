@@ -30,7 +30,7 @@ class MarketTaker:
     def __updateTokenBalance(self, delta):
         self.tknBalance += delta
 
-    # This function handles price impact from the perspective of a MarketTaker
+    # This function handles price impact of INSR buys from the perspective of a MarketTaker
     # Input ETH amounts are scaled up or down by 10% until price impact of transaction falls between -10% and 10%
     # Function will return (initial) ethAmount if handling price impact results in updatedEthAmount of > ethBalance
     def __handlePriceImpactOfInsrBuy(self, insrDex: Dex, ethAmount):
@@ -41,14 +41,32 @@ class MarketTaker:
             if(priceImpact > 0.1):
                 updatedEthAmount *= 0.90
             if(priceImpact < -0.1):
-                updatedEthAmount *= 1.1
+                updatedEthAmount *= 1.10
             priceImpact = insrDex.getPriceImpactOfInsrBuy(updatedEthAmount)
 
         if updatedEthAmount > self.ethBalance:
             updatedEthAmount = ethAmount
 
-        print('Updated ETH amount:' + str(updatedEthAmount))
         return updatedEthAmount
+
+    # This function handles price impact INSR sells from the perspective of a MarketTaker
+    # Input INSR amounts are scaled up or down by 10% until price impact of transaction falls between -10% and 10%
+    # Function will return (initial) insrAmount if handling price impact results in updatedInsrAmount of > insrBalance
+    def __handlePriceImpactOfInsrSell(self, insrDex: Dex, insrAmount):
+        priceImpact = insrDex.getPriceImpactOfInsrSell(insrAmount)
+        updatedInsrAmount = insrAmount
+
+        while(priceImpact > 0.1 or priceImpact < -0.1):
+            if (priceImpact > 0.1):
+                updatedInsrAmount *= 0.90
+            if(priceImpact < -0.1):
+                updatedInsrAmount *= 1.10
+            priceImpact = insrDex.getPriceImpactOfInsrSell(updatedInsrAmount)
+
+        if updatedInsrAmount > self.insrBalance:
+            updatedInsrAmount = insrAmount
+
+        return updatedInsrAmount
 
     # This function processes INSR buys from input Dex and updates local balances
     # Price impact handled before transaction processing
@@ -68,16 +86,21 @@ class MarketTaker:
         self.__updateInsrBalance(incomingInsr)
         
 
-    # This function processes INSR buys from input Dex and updates local balances
+    # This function processes INSR sells from input Dex and updates local balances
+    # Price impact handlded before transaction processing
     def sellInsr(self, insrDex: Dex, insrAmount):
         assert insrAmount <= self.insrBalance, 'Input INSR > balance'
-        # handle price impact
         
-        incomingEth = insrDex.getAmountEthToReceive(insrAmount)
-        insrDex.transactSellInsr(insrAmount)
+        # handle price impact
+        updatedInsrAmount = self.__handlePriceImpactOfInsrSell(insrDex, insrAmount)
+        assert updatedInsrAmount <= self.insrBalance
+        
+        # process DEX transaction
+        incomingEth = insrDex.getAmountEthToReceive(updatedInsrAmount)
+        insrDex.transactSellInsr(updatedInsrAmount)
 
         # update balances
-        self.__updateInsrBalance(insrAmount * -1.0)
+        self.__updateInsrBalance(updatedInsrAmount * -1.0)
         self.__updateEthBalance(incomingEth)
 
     def buyTkn(self, tknDex, insrAmount):
