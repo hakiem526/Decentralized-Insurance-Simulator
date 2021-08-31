@@ -9,14 +9,11 @@ from ..utility.PriceOracle import PriceOracle
 
 class MarketTaker:
 
-    totalNum = 0
-
-    def __init__(self, ethBalance):
-        self.id = self.totalNum
+    def __init__(self, id, ethBalance):
+        self.id = id
         self.ethBalance = float(ethBalance)
         self.insrBalance = 0.0
         self.tknBalance = 0.0
-        self.totalNum += 1
 
     def __getAmountEthToSpend(self): 
         pass
@@ -70,7 +67,7 @@ class MarketTaker:
 
     # This function processes INSR buys from input Dex and updates local balances
     # Price impact handled before transaction processing
-    def buyInsr(self, insrDex: Dex, ethAmount):
+    def buyInsrWithSpecifiedEthAmount(self, insrDex: Dex, ethAmount):
         assert ethAmount <= self.ethBalance, 'Input ETH > balance'
         
         # handle price impact
