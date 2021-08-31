@@ -82,7 +82,7 @@ class Dex:
     # This function processes buy transactions and updates reserves and price accordingly. Returns dictionary of transaction details
     # Function throws exception if price impact > 10%, when buy amount too high
     # Function throws exception if price impact < -10%, when buy amount too low
-    def transactBuyInsr(self, inputEthAmount):
+    def transactBuyInsr(self, id, inputEthAmount):
         priceImpact = self.getPriceImpactOfInsrBuy(inputEthAmount) 
         assert priceImpact < 0.1 and priceImpact > -0.1
 
@@ -93,14 +93,14 @@ class Dex:
         
         # generate receipt
         insrAverageCost = float(inputEthAmount) * self.ethPrice / outgoingInsr
-        transactionReceipt = {'type' : 'INSRBUY', 'amount' : outgoingInsr, 'price' : insrAverageCost, 'total': inputEthAmount * self.ethPrice}
+        transactionReceipt = {'id': id, 'type' : 'INSRBUY', 'amount' : outgoingInsr, 'price' : insrAverageCost, 'total': inputEthAmount * self.ethPrice}
         self.__printTrxReceiptPretty(transactionReceipt)
         return transactionReceipt
 
     # This function processes sell transactions and updates reserves and price accordingly. Returns dictionary of transaction details
     # Function throws exception if price impact > 10%, when sell amount too high
     # Function throws exception if price impact < -10%, when sell amount too low
-    def transactSellInsr(self, inputInsrAmount):
+    def transactSellInsr(self, id, inputInsrAmount):
         priceImpact = self.getPriceImpactOfInsrSell(inputInsrAmount)
         assert priceImpact < 0.1 and priceImpact > -0.1
 
@@ -111,12 +111,12 @@ class Dex:
 
         # generate receipt
         insrAverageCost = float(outgoingEth) * self.ethPrice / inputInsrAmount
-        transactionReceipt = {'type' : 'INSRSELL', 'amount' : inputInsrAmount, 'price' : insrAverageCost, 'total' : outgoingEth * self.ethPrice}
+        transactionReceipt = {'id': id, 'type' : 'INSRSELL', 'amount' : inputInsrAmount, 'price' : insrAverageCost, 'total' : outgoingEth * self.ethPrice}
         self.__printTrxReceiptPretty(transactionReceipt)
         return transactionReceipt
 
     def __printTrxReceiptPretty(self, receipt: Dict):
-        output = 'Trx receipt\n\t' + 'Type: ' + str(receipt.get('type')) + '\n\tAmount INSR: ' + str(receipt.get('amount')) + \
+        output = 'Trx receipt\n\tActor ID: ' + str(receipt.get('id')) + '\n\tType: ' + str(receipt.get('type')) + '\n\tAmount INSR: ' + str(receipt.get('amount')) + \
             '\n\tAvg price: $' + str(receipt.get('price')) + '\n\tTotal: $' + str(receipt.get('total'))
         print(output)
 
