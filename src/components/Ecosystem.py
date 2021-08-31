@@ -18,19 +18,17 @@ class Ecosystem:
         self.dex = dex
         self.marketTakers = marketTakers
 
-    # This function calls transactions
+    # This function processes all transactions in the simulation
     def run(self, numTransactions):
         actions = ['buyInsr', 'sellInsr']
         for i in range(numTransactions):
             action = random.choice(actions)
             actor = random.choice(self.marketTakers)
-            print(actor)
-            if action == 'buy':
-                # if(self.__checksForBuyInsr()):
-                pass
-            elif action == 'sell':
-                # print('sell!')
-                pass
+            if action == 'buyInsr':
+                if(self.__checksForBuyInsr(actor)):
+                    actor.buyInsr(self.dex)
+            elif action == 'sellInsr':
+                print('sell!')
     
-    def __checksForBuyInsr(self):
-        pass
+    def __checksForBuyInsr(self, actor: MarketTaker):
+        return actor.ethBalance > 0
