@@ -18,8 +18,8 @@ class Simulator:
         self.dex = dex
         self.marketTakers = marketTakers
 
-    # This function checks that ETH balance > 0 before INSR buys
-    def __checksBeforeInsrBuy(self, actor: MarketTaker):
+    # This function checks that ETH balance > 0 before buys
+    def __checksBeforeBuy(self, actor: MarketTaker):
         return actor.ethBalance > 0
 
     # This function checks that INSR balance > 0 before INSR sells
@@ -28,7 +28,7 @@ class Simulator:
 
     # This function processes all transactions in the simulation
     def run(self, numTransactions):
-        actions = ['buyInsr', 'sellInsr']
+        actions = ['buyInsr', 'sellInsr', 'buyTkn']
         i = 0
         while i < numTransactions:
             actor = random.choice(self.marketTakers)
@@ -36,12 +36,17 @@ class Simulator:
 
             action = random.choice(actions)
 
-            # Note: transactions that did not go through are not accounted for
+            # Note: transactions that did not go through (due to insufficient balances) are not accounted for
             if action == 'buyInsr':
-                if(self.__checksBeforeInsrBuy(actor)):
+                if(self.__checksBeforeBuy(actor)):
                     actor.buyInsr(self.dex)
                     i += 1
             elif action == 'sellInsr':
                 if(self.__checksBeforeInsrSell(actor)):
                     actor.sellInsr(self.dex)
                     i += 1
+            elif action == 'buyTkn':
+                if(self.__checksBeforeBuy(actor)):
+                    actor.buyTkn()
+                    i += 1
+

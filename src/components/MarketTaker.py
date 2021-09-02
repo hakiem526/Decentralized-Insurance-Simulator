@@ -1,5 +1,6 @@
 from .Dex import Dex
 from ..utility.PriceOracle import PriceOracle
+from typing import Dict
 
 # Buy TKN - buy TKN using a certain percentage of ETH balance
 # Insure TKN - insure a certain percentage of TKN: Purchase sufficient amount of INSR for insurance -> insure on platform
@@ -28,7 +29,7 @@ class MarketTaker:
     # This private function returns the amount of INSR to be sold on INSR sell transaction
     # Possible proportions of INSR balance to be sold is hardcoded
     def __getAmountInsrToSell(self):
-        assert(self.insrBalance > 0, '0 INSR balance')
+        assert self.insrBalance > 0, '0 INSR balance'
         proportions = [0.2, 0.3, 0.4, 0.5, 1]
         insrToSell = random.choice(proportions) * self.insrBalance
         return insrToSell
@@ -115,10 +116,21 @@ class MarketTaker:
         self.__updateInsrBalance(updatedInsrAmount * -1.0)
         self.__updateEthBalance(incomingEth)
 
-    # Called by Simulator
-    def buyTkn(self, tknDex, insrAmount):
-        ethToSpend = self.ethBalance * 1
+    # Called by Simulator for TKN buy transactions
+    def buyTkn(self):
+        # trx details
+        ethToSpend = self.__getAmountEthToSpend()
         tknPrice = PriceOracle.getTknPrice()
+        amountTknToReceive = ethToSpend * PriceOracle.ethPrice / tknPrice
+        
+        # update balances
+        self.__updateEthBalance(ethToSpend * -1.0)
+        self.__updateTokenBalance(amountTknToReceive)
+
+        # trx receipt
+        transactionReceipt = {'id': self.id, 'type' : 'TKNBUY', 'amount' : amountTknToReceive, 'price' : tknPrice, 'total': ethToSpend * PriceOracle.ethPrice}
+        self.__printTrxReceiptPretty(transactionReceipt)
+        print(self)
 
     # Called by Simulator for INSR buy transactions
     def buyInsr(self, insrDex: Dex):
@@ -136,6 +148,11 @@ class MarketTaker:
     def buySpecificInsrAmount(self, insrDex:Dex, amount):
         # TODO
         pass
+
+    def __printTrxReceiptPretty(self, receipt: Dict):
+        output = 'Trx receipt\n\tActor ID: ' + str(receipt.get('id')) + '\n\tType: ' + str(receipt.get('type')) + '\n\tAmount TKN: ' + str(receipt.get('amount')) + \
+            '\n\tAvg price: $' + str(receipt.get('price')) + '\n\tTotal: $' + str(receipt.get('total'))
+        print(output)
 
     def __str__(self):
         return 'MarketTaker' + '\n\tid: ' + str(self.id) + '\n\tETH balance: ' + str(self.ethBalance) + '\n\tINSR balance: ' + str(self.insrBalance) + \
